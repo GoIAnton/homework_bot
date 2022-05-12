@@ -35,23 +35,26 @@ HOMEWORK_STATUSES = {
 }
 
 
-class EmptyResponseException(Exception):
-    pass
-
-
 class ParseStatusError(Exception):
+    """В ответе недокументированный статус."""
+
     pass
 
 
 class Not200Error(Exception):
+    """Ответ не равен 200."""
+
     pass
 
 
 class AnswerApiError(Exception):
+    """Ответ API не соответствует ожиданиям."""
+
     pass
 
 
 def send_message(bot, message):
+    """Отправка сообщения в Телеграм."""
     try:
         bot.send_message(TELEGRAM_CHAT_ID, message)
         logger.info(f'В Telegram отправлено cообщение: {message}')
@@ -60,6 +63,7 @@ def send_message(bot, message):
 
 
 def get_api_answer(current_timestamp):
+    """Получение данных с API Яндекс Практикума за определённый период."""
     timestamp = current_timestamp or int(time.time())
     params = {'from_date': timestamp}
     headers = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
@@ -79,6 +83,7 @@ def get_api_answer(current_timestamp):
 
 
 def check_response(response):
+    """Проверяет ответ API и возвращает список домашних работ."""
     homework = response['homeworks']
     if homework == []:
         return {}
@@ -86,10 +91,11 @@ def check_response(response):
         msg = 'Ответ API не соответствует ожиданиям'
         logger.error(msg)
         raise AnswerApiError(msg)
-    return homework[0]
+    return homework
 
 
 def parse_status(homework):
+    """Находит статус и возвращает соответствующее сообщение."""
     if 'homework_name' not in homework or 'status' not in homework:
         logger.error('homework_name или status отсутствует в homework')
         raise KeyError('homework_name или status отсутствует в homework')
@@ -104,6 +110,7 @@ def parse_status(homework):
 
 
 def check_tokens():
+    """Проверяет доступность переменных окружения."""
     msg = 'Отсутствует переменная окружения'
     check = True
     if PRACTICUM_TOKEN is None:
@@ -132,7 +139,7 @@ def main():
     while True:
         try:
             response = get_api_answer(current_timestamp)
-            homework = check_response(response)
+            homework = check_response(response)[0]
             if status != homework.get('status') and homework:
                 message = parse_status(homework)
                 send_message(bot, message)
