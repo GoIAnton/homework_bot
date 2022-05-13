@@ -129,13 +129,14 @@ def main():
                 send_message(bot, message)
                 status = homework.get('status')
             current_timestamp = int(time.time())
-            time.sleep(settings.RETRY_TIME)
 
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
             if check_error != message:
                 check_error = message
                 send_message(bot, message)
+
+        finally:
             time.sleep(settings.RETRY_TIME)
 
 
