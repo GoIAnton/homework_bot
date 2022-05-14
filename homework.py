@@ -26,13 +26,6 @@ TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 
 
-HOMEWORK_STATUSES = {
-    'approved': 'Работа проверена: ревьюеру всё понравилось. Ура!',
-    'reviewing': 'Работа взята на проверку ревьюером.',
-    'rejected': 'Работа проверена: у ревьюера есть замечания.'
-}
-
-
 def send_message(bot, message):
     """Отправка сообщения в Телеграм."""
     try:
@@ -81,7 +74,7 @@ def check_response(response):
         msg = 'В check_response response["homeworks"] != list'
         logger.error(msg)
         raise TypeError(msg)
-    if homework == []:
+    if not homework:
         return {}
     if type(homework[0]) is not dict:
         msg = 'Ответ API не соответствует ожиданиям'
@@ -97,11 +90,11 @@ def parse_status(homework):
         raise KeyError('homework_name или status отсутствует в homework')
     homework_name = homework['homework_name']
     homework_status = homework['status']
-    if homework_status not in HOMEWORK_STATUSES:
+    if homework_status not in settings.HOMEWORK_STATUSES:
         msg = 'В ответе недокументированный статус'
         logger.error(msg)
         raise settings.ParseStatusError(msg)
-    verdict = HOMEWORK_STATUSES[homework_status]
+    verdict = settings.HOMEWORK_STATUSES[homework_status]
     return f'Изменился статус проверки работы "{homework_name}". {verdict}'
 
 
